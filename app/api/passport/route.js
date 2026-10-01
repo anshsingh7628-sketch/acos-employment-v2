@@ -37,7 +37,8 @@ const CLAIMS = [
 
 export function GET() {
   const scored = CLAIMS.map((c) => {
-    const cov = c.items.length ? coverage(c.items, NOW) : null;
+    const scored = c.items.length ? coverage(c.items, NOW) : null;
+    const cov = scored ? scored.coverage : null;
     const lab = label(cov);
     return {
       ...c,
