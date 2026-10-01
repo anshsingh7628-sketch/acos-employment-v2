@@ -101,7 +101,13 @@ h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.03em; margin: 0 0 6px
 .chip.some { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
 .chip.thin { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
 .chip.agent { color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent-line); }
-.chip.lock { color: var(--text); }
+.loop { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 16px; }
+.loop span { font: 500 11px var(--font-mono); color: var(--subtle); border: 1px solid var(--border); border-radius: 999px; padding: 4px 8px; }
+.loop span.on { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
+.loop span.done { color: var(--success); border-color: transparent; background: var(--success-soft); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+.field { display: grid; gap: 4px; margin-bottom: 10px; }
+.field label { font: 500 11px var(--font-mono); color: var(--subtle); letter-spacing: 0.06em; text-transform: uppercase; }
 
 .agent-box { background: var(--accent-soft); border: 1px dashed var(--accent-line); border-radius: var(--r-md); padding: 10px 12px; }
 textarea, input[type="text"] {
