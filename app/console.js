@@ -36,7 +36,7 @@ function load() {
   }
 }
 
-export default function Console() {
+export default function Console({ gated = false }) {
   const [hydrated, setHydrated] = useState(false);
   const [role, setRole] = useState("seeker");
   const [screen, setScreen] = useState("home");
@@ -68,7 +68,8 @@ export default function Console() {
   const [killed, setKilled] = useState(false);
   const [consentSent, setConsentSent] = useState(false);
   const [shown, setShown] = useState({ Ananya: false, Rohan: false, Fatima: true, Kiran: false });
-  const [bench, setBench] = useState(["Fatima · writing verified"]);
+  const [account, setAccount] = useState(null);
+  const [menu, setMenu] = useState(false);
 
   useEffect(() => {
     const saved = load();
@@ -97,7 +98,15 @@ export default function Console() {
     }
     setHydrated(true);
     fetch("/api/passport").then((r) => r.json()).then(setPassport).catch(() => {});
-  }, []);
+    if (gated) {
+      fetch("/api/session").then((r) => r.json()).then((d) => {
+        if (d.account) {
+          setAccount(d.account);
+          setRole(d.account.role);
+        }
+      }).catch(() => {});
+    }
+  }, [gated]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -217,8 +226,12 @@ export default function Console() {
           ))}
         </div>
         <div className="spacer" />
+        {account && <span className="mono" style={{ color: "var(--subtle)", fontSize: 12 }}>{account.name}</span>}
         <button className="iconbtn" onClick={() => setCmd(true)}>⌘K</button>
         <button className="iconbtn" onClick={() => setBell((v) => !v)}>Bell {notes.length > 0 && <span className="badge">{notes.length}</span>}</button>
+        {gated && (
+          <button className="iconbtn" onClick={() => setMenu((v) => !v)}>Account</button>
+        )}
       </header>
       <div className="shell">
         <nav className="nav">
@@ -447,6 +460,16 @@ export default function Console() {
         </div>
       )}
       {bell && <div className="trace card"><div className="row" style={{ justifyContent: "space-between" }}><strong>Notifications</strong><button className="ghost" onClick={() => setBell(false)}>Close</button></div>{notes.length === 0 && <p>Quiet.</p>}{notes.map((n) => <p key={n.id}>{n.text}</p>)}</div>}
+      {menu && (
+        <div className="trace card">
+          <strong>{account?.email}</strong>
+          <p>{account?.org}</p>
+          <div className="row">
+            <a className="ghost" href="/security">Security</a>
+            <button className="danger" onClick={async () => { await fetch("/api/session", { method: "DELETE" }); window.location.href = "/login"; }}>Sign out</button>
+          </div>
+        </div>
+      )}
       {trace && <div className="trace card"><div className="row" style={{ justifyContent: "space-between" }}><strong>Why</strong><button className="ghost" onClick={() => setTrace(null)}>Close</button></div><p>{trace.why || trace.text}</p><p className="mono">{trace.note || trace.detail}</p></div>}
     </>
   );

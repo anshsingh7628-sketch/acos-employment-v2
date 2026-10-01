@@ -108,6 +108,14 @@ h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.03em; margin: 0 0 6px
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 .field { display: grid; gap: 4px; margin-bottom: 10px; }
 .field label { font: 500 11px var(--font-mono); color: var(--subtle); letter-spacing: 0.06em; text-transform: uppercase; }
+a { color: var(--accent); }
+a.primary, a.ghost { text-decoration: none; display: inline-flex; align-items: center; }
+.hero, .band { padding: 8px 22px 28px; max-width: 980px; }
+.auth { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+.authcard { width: min(440px, 100%); }
+.mnav a { color: var(--muted); text-decoration: none; }
+.foot { display: flex; gap: 16px; flex-wrap: wrap; padding: 22px; color: var(--subtle); border-top: 1px solid var(--border); }
+.foot a { color: var(--muted); text-decoration: none; }
 
 .agent-box { background: var(--accent-soft); border: 1px dashed var(--accent-line); border-radius: var(--r-md); padding: 10px 12px; }
 textarea, input[type="text"] {
