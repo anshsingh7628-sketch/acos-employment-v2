@@ -1,0 +1,671 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Aco's Employment</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap">
+<style>
+/* Layout: app shell — top bar with role switch, left rail per role, one working canvas.
+   Tokens are V1's (docs/DESIGN-SYSTEM.md, 28 Sep 2026): dark-first, neutral greys, one blue accent.
+   V2 adds semantic evidence + agent tokens mapped onto them (04_Experience/11_UX_Spec.md §1). */
+:root {
+  color-scheme: dark;
+  --bg: #0A0A0B; --surface: #111113; --surface-2: #18181B; --raised: #1C1C20;
+  --border: #232328; --border-strong: #2F2F35;
+  --text: #FAFAFA; --muted: #A1A1AA; --subtle: #8A8A93;
+  --accent: #7C9CFF; --accent-fg: #0A0A0B; --accent-soft: rgba(124,156,255,.12); --accent-line: rgba(124,156,255,.35);
+  --success: #4ADE80; --success-soft: rgba(74,222,128,.12);
+  --warn: #FBBF24; --warn-soft: rgba(251,191,36,.12);
+  --danger: #F87171;
+  --overlay: rgba(0,0,0,.6); --shadow: 0 12px 40px rgba(0,0,0,.45);
+  --ev-strong: var(--success); --ev-strong-bg: var(--success-soft);
+  --ev-some: var(--accent); --ev-some-bg: var(--accent-soft);
+  --ev-thin: var(--warn); --ev-thin-bg: var(--warn-soft);
+  --ev-unknown: var(--subtle); --ev-unknown-bg: var(--surface-2);
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --r-sm: 8px; --r-md: 10px; --r-lg: 14px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #FFFFFF; --surface: #FAFAFA; --surface-2: #F4F4F5; --raised: #FFFFFF;
+    --border: #E4E4E7; --border-strong: #D4D4D8;
+    --text: #09090B; --muted: #52525B; --subtle: #6B6B74;
+    --accent: #3355E0; --accent-fg: #FFFFFF; --accent-soft: rgba(51,85,224,.08); --accent-line: rgba(51,85,224,.3);
+    --success: #15803D; --success-soft: rgba(21,128,61,.09);
+    --warn: #B45309; --warn-soft: rgba(180,83,9,.09);
+    --danger: #B91C1C; --overlay: rgba(9,9,11,.35); --shadow: 0 12px 40px rgba(9,9,11,.12);
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #FFFFFF; --surface: #FAFAFA; --surface-2: #F4F4F5; --raised: #FFFFFF;
+  --border: #E4E4E7; --border-strong: #D4D4D8;
+  --text: #09090B; --muted: #52525B; --subtle: #6B6B74;
+  --accent: #3355E0; --accent-fg: #FFFFFF; --accent-soft: rgba(51,85,224,.08); --accent-line: rgba(51,85,224,.3);
+  --success: #15803D; --success-soft: rgba(21,128,61,.09);
+  --warn: #B45309; --warn-soft: rgba(180,83,9,.09);
+  --danger: #B91C1C; --overlay: rgba(9,9,11,.35); --shadow: 0 12px 40px rgba(9,9,11,.12);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 var(--font-sans); -webkit-font-smoothing: antialiased; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.mono { font-family: var(--font-mono); }
+.num { font-variant-numeric: tabular-nums; }
+em.serif { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: 0; }
+
+/* shell */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 10px 20px; background: var(--bg); border-bottom: 1px solid var(--border); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -.01em; }
+.brand svg { flex: none; }
+.brand small { font: 500 11px var(--font-mono); color: var(--subtle); text-transform: uppercase; letter-spacing: .08em; }
+.roles { display: flex; gap: 2px; padding: 3px; background: var(--surface-2); border-radius: var(--r-md); }
+.roles button { border: 0; background: transparent; padding: 6px 12px; border-radius: 7px; cursor: pointer; color: var(--muted); font-weight: 500; }
+.roles button[aria-pressed="true"] { background: var(--raised); color: var(--text); box-shadow: 0 1px 0 var(--border-strong); }
+.top .spacer { flex: 1; }
+.iconbtn { border: 1px solid var(--border-strong); background: var(--raised); border-radius: var(--r-md); height: 34px; min-width: 34px; padding: 0 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.iconbtn:hover { color: var(--text); }
+.badge { background: var(--accent); color: var(--accent-fg); border-radius: 999px; font: 600 10px/1 var(--font-mono); padding: 3px 6px; }
+
+.shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100% - 56px); }
+.rail { border-right: 1px solid var(--border); padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.rail .who { padding: 8px 10px 14px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.rail .who b { display: block; font-weight: 600; }
+.rail .who span { color: var(--subtle); font-size: 12px; }
+.rail button { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: var(--r-sm); cursor: pointer; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+.rail button:hover { background: var(--surface-2); color: var(--text); }
+.rail button[aria-current="page"] { background: var(--surface-2); color: var(--text); font-weight: 500; }
+.rail .count { font: 500 11px var(--font-mono); color: var(--subtle); }
+main { padding-block: 28px 64px; padding-inline: clamp(16px, 4vw, 40px); min-width: 0; }
+.view { max-width: 1080px; display: flex; flex-direction: column; gap: 20px; }
+
+.eyebrow { font: 500 11px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--subtle); }
+h1 { font-size: 28px; line-height: 1.15; letter-spacing: -.02em; font-weight: 600; margin: 4px 0 0; text-wrap: balance; }
+h2 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 64ch; margin-top: 8px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.between { justify-content: space-between; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card.agent { background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--surface); border-color: var(--accent-line); }
+.drafted { font: 500 11px var(--font-mono); color: var(--accent); display: inline-flex; gap: 6px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 14px; }
+
+.btn { height: 36px; padding: 0 14px; border-radius: var(--r-md); border: 1px solid var(--border-strong); background: var(--raised); cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { border-color: var(--subtle); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--text); background: var(--surface-2); }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-weight: 500; }
+
+/* evidence chips + fit rows */
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 500 11px/1 var(--font-mono); padding: 5px 8px; border-radius: 999px; white-space: nowrap; }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chip.strong { color: var(--ev-strong); background: var(--ev-strong-bg); }
+.chip.some { color: var(--ev-some); background: var(--ev-some-bg); }
+.chip.thin { color: var(--ev-thin); background: var(--ev-thin-bg); }
+.chip.unknown { color: var(--ev-unknown); background: var(--ev-unknown-bg); }
+.chip.unknown::before { background: transparent; border: 1px dashed currentColor; }
+.chip.plain { color: var(--muted); background: var(--surface-2); }
+.chip.wrap { white-space: normal; line-height: 1.35; border-radius: 8px; }
+.chip.plain::before { display: none; }
+.chip.lock { color: var(--text); background: var(--surface-2); }
+.chip.lock::before { display: none; }
+
+.fit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; }
+.fit .req { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: baseline; min-width: 0; }
+.fit .req b { font-weight: 500; }
+.fit .req .meta { grid-column: 2; }
+.must { width: 30px; flex: none; font: 500 10px var(--font-mono); color: var(--subtle); text-transform: uppercase; letter-spacing: .06em; }
+.bar { height: 4px; background: var(--surface-2); border-radius: 4px; grid-column: 1 / -1; margin-top: -4px; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 4px; }
+.meta { color: var(--subtle); font-size: 12px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.kv div { background: var(--surface-2); border-radius: var(--r-md); padding: 10px 12px; }
+.kv small { display: block; font: 500 10px var(--font-mono); text-transform: uppercase; letter-spacing: .07em; color: var(--subtle); }
+.kv b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.quote { background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px 14px; color: var(--muted); white-space: pre-wrap; }
+.risk { color: var(--warn); font-size: 13px; display: flex; gap: 8px; }
+.risk::before { content: "△"; }
+ul.clean { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+
+/* board */
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+.col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 160px; }
+.col h3 { margin: 0; font: 500 11px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--subtle); display: flex; justify-content: space-between; }
+.col h3.post { color: var(--accent); }
+.mini { background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.mini b { font-weight: 500; }
+
+/* timeline */
+.tl { display: flex; flex-direction: column; }
+.tl .item { display: grid; grid-template-columns: 90px 28px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: start; }
+.tl time { font: 12px var(--font-mono); color: var(--subtle); padding-top: 4px; }
+.dot { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 600 11px var(--font-mono); background: var(--surface-2); color: var(--muted); }
+.dot.agent { background: var(--accent-soft); color: var(--accent); }
+.dot.ev { background: var(--success-soft); color: var(--success); }
+
+/* automation */
+.dial { display: flex; gap: 2px; padding: 3px; background: var(--surface-2); border-radius: var(--r-md); flex-wrap: wrap; }
+.dial button { border: 0; background: transparent; padding: 6px 10px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 13px; }
+.dial button[aria-pressed="true"] { background: var(--raised); color: var(--text); box-shadow: 0 1px 0 var(--border-strong); }
+.dial button[disabled] { opacity: .35; cursor: not-allowed; }
+.auto-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.auto-row:last-child { border-bottom: 0; }
+
+/* table */
+.tablewrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-lg); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+th { font: 500 11px var(--font-mono); text-transform: uppercase; letter-spacing: .07em; color: var(--subtle); background: var(--surface); }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; }
+
+textarea { width: 100%; min-height: 110px; resize: vertical; background: var(--raised); border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 12px; line-height: 1.5; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font: 500 11px var(--font-mono); text-transform: uppercase; letter-spacing: .07em; color: var(--subtle); }
+.field .val { padding: 9px 12px; border-radius: var(--r-md); border: 1px solid var(--border-strong); background: var(--raised); }
+.field.ai .val { border-color: var(--accent-line); background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--raised); }
+
+/* dialog + toast */
+dialog { border: 1px solid var(--border-strong); background: var(--raised); color: var(--text); border-radius: var(--r-lg); padding: 0; width: min(620px, calc(100vw - 32px)); box-shadow: var(--shadow); }
+dialog::backdrop { background: var(--overlay); }
+dialog header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+dialog .body { padding: 18px; display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow: auto; }
+.step { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; }
+.step .n { font: 500 11px var(--font-mono); color: var(--subtle); padding-top: 2px; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--raised); border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 10px 12px 10px 16px; display: flex; gap: 14px; align-items: center; box-shadow: var(--shadow); z-index: 50; max-width: calc(100vw - 32px); }
+.toast .t { font: 500 12px var(--font-mono); color: var(--subtle); }
+
+.note { font-size: 12px; color: var(--subtle); border-top: 1px dashed var(--border-strong); padding-top: 12px; }
+.pill-state { font: 500 11px var(--font-mono); padding: 3px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.bands { display: flex; flex-direction: column; gap: 8px; }
+.band { display: grid; grid-template-columns: 110px minmax(0, 1fr) 36px; gap: 10px; align-items: center; font-size: 13px; }
+.band .track { height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+.band .track i { display: block; height: 100%; background: var(--accent); border-radius: 5px; }
+
+@media (max-width: 760px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .rail { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 8px 12px; }
+  .rail .who { display: none; }
+  .rail button { white-space: nowrap; }
+  .top { padding: 10px 16px; }
+  .tl .item { grid-template-columns: 28px minmax(0, 1fr); }
+  .tl time { grid-column: 2; padding: 0; order: 2; }
+  h1 { font-size: 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card, .mini { transition: border-color .15s, transform .15s; }
+  .view { animation: in .22s ease-out; }
+  @keyframes in { from { transform: translateY(4px); } to { transform: none; } }
+}
+</style>
+
+<header class="top">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h5v-5h5V9h5V4h3" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Aco's Employment</span><small>Live</small>
+  </div>
+  <div class="roles" role="group" aria-label="View as">
+    <button type="button" data-role="seeker" aria-pressed="true">Job seeker</button>
+    <button type="button" data-role="recruiter" aria-pressed="false">Employer</button>
+    <button type="button" data-role="institution" aria-pressed="false">Institution</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="iconbtn" type="button" id="bell" aria-label="Notifications"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="badge" id="bellCount">3</span></button>
+  <button class="iconbtn" type="button" id="theme" aria-label="Switch theme">Theme</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Sections"></nav>
+  <main id="main"></main>
+</div>
+
+<dialog id="trace" aria-labelledby="traceTitle">
+  <header><h2 id="traceTitle">Why this happened</h2><button class="btn ghost" type="button" id="traceClose">Close</button></header>
+  <div class="body" id="traceBody"></div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+let DATA = null;
+
+// ---------- helpers ----------
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const inr = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
+const LABEL = { strong: "Strong evidence", some: "Some evidence", thin: "Thin evidence", unknown: "No evidence yet" };
+const CLASS_TXT = { claim: "claim", credential: "credential", practice_assessment: "practice", assessment: "assessment", work_artifact: "work artifact", observed_outcome: "observed outcome", verified_outcome: "verified outcome" };
+const CAP_TXT = { market_research: "Market research", crm_admin: "CRM setup & admin", b2b_outreach_writing: "B2B outreach writing", data_cleaning: "Data cleaning", excel_modelling: "Excel modelling", sql: "SQL", stakeholder_comms: "Stakeholder communication", python: "Python" };
+const capName = (c) => CAP_TXT[c] || c;
+const chip = (label, extra = "") => `<span class="chip ${label}">${LABEL[label]}${extra}</span>`;
+const barColor = { strong: "var(--ev-strong)", some: "var(--ev-some)", thin: "var(--ev-thin)", unknown: "transparent" };
+
+function fitRows(rows) {
+  return `<div class="fit">${rows.map((r) => `
+    <div class="req">${r.must ? '<span class="must">must</span>' : '<span class="must">nice</span>'}<b>${esc(capName(r.requirement))}</b>
+      ${r.bestClass ? `<span class="meta">${CLASS_TXT[r.bestClass]}${r.recencyMonths != null ? `, ${r.recencyMonths} mo` : ""}</span>` : ""}</div>
+    ${chip(r.label)}
+    <div class="bar" aria-hidden="true"><i style="width:${r.coverage == null ? 0 : Math.round(r.coverage * 100)}%;background:${barColor[r.label]}"></i></div>`).join("")}</div>`;
+}
+
+let toastTimer = null;
+function toast(msg, { undoSeconds = 0, onUndo } = {}) {
+  const t = $("#toast");
+  clearInterval(toastTimer);
+  let left = undoSeconds;
+  const draw = () => {
+    const mm = String(Math.floor(left / 60)).padStart(2, "0"), ss = String(left % 60).padStart(2, "0");
+    t.innerHTML = `<span>${esc(msg)}</span>${undoSeconds ? `<span class="t">${mm}:${ss}</span><button class="btn" type="button" id="undoBtn">Undo</button>` : ""}<button class="btn ghost" type="button" id="toastX" aria-label="Dismiss">✕</button>`;
+    if (undoSeconds) $("#undoBtn").onclick = () => { clearInterval(toastTimer); t.hidden = true; onUndo && onUndo(); };
+    $("#toastX").onclick = () => { clearInterval(toastTimer); t.hidden = true; };
+  };
+  t.hidden = false; draw();
+  if (undoSeconds) toastTimer = setInterval(() => { left--; if (left <= 0) { clearInterval(toastTimer); t.hidden = true; } else draw(); }, 1000);
+}
+
+function openTrace(tr) {
+  $("#traceTitle").textContent = tr.title;
+  $("#traceBody").innerHTML = `
+    <div class="kv">
+      <div><small>Agent</small><b>${esc(tr.agent)}</b></div>
+      <div><small>Policy</small><b>${esc(tr.policy)}</b></div>
+      <div><small>Cost</small><b class="num">${esc(tr.cost)}</b></div>
+      <div><small>Model tier</small><b>${esc(tr.model)}</b></div>
+    </div>
+    ${tr.steps.map((s, i) => `<div class="step"><span class="n">${i + 1}</span><div><b>${esc(s[0])}</b><p class="meta">${esc(s[1])}</p></div></div>`).join("")}
+    <p class="note">Every agent action keeps this record: inputs used, evidence ids, the policy decision that allowed it, the model and what it cost. Nothing an agent does happens without one.</p>`;
+  $("#trace").showModal();
+}
+$("#traceClose").onclick = () => $("#trace").close();
+
+// ---------- state ----------
+const S = {
+  role: "seeker",
+  view: { seeker: "home", recruiter: "configs", institution: "cohort" },
+  approved: new Set(), skipped: new Set(),
+  dial: { apply_native: 3, apply_external: 3, followups: 2, schedule: 3, reject: 6 },
+  paused: false,
+  demandDrafted: false,
+  chosen: null,
+  disclosure: { all_recruiters: false, institution: true },
+};
+
+// ---------- seeker ----------
+const PREPARED = [
+  { id: "a1", role: "Growth Analyst Intern", org: "Kesar Foods", place: "Bengaluru · hybrid", band: "₹25k/month · 6 months", channel: "native",
+    rows: [
+      { requirement: "market_research", must: true, label: "some", coverage: 0.5, bestClass: "work_artifact", recencyMonths: 1 },
+      { requirement: "data_cleaning", must: true, label: "some", coverage: 0.44, bestClass: "assessment", recencyMonths: 1 },
+      { requirement: "crm_admin", must: false, label: "unknown", coverage: null, bestClass: null },
+    ],
+    note: "Hi Meera — I cleaned and segmented a 3,000-row retailer list for my college's incubator last month (attached), and I'd like to do the same groundwork for Kesar's first outbound push. I can start 1 Nov.",
+    resume: "Resume v3 · Growth (12 Sep)" },
+  { id: "a2", role: "Business Analyst (Fresher)", org: "Tarang Logistics", place: "Remote", band: "₹4.5–5.5 LPA", channel: "native",
+    rows: [
+      { requirement: "excel_modelling", must: true, label: "strong", coverage: 0.66, bestClass: "assessment", recencyMonths: 2 },
+      { requirement: "sql", must: true, label: "thin", coverage: 0.12, bestClass: "claim", recencyMonths: 4 },
+      { requirement: "stakeholder_comms", must: false, label: "some", coverage: 0.31, bestClass: "practice_assessment", recencyMonths: 1 },
+    ],
+    note: "Hello — my Excel cost model for a campus canteen cut weekly waste by 18% (assessment and file linked). I'm building SQL now and can share progress.",
+    resume: "Resume v2 · Analyst (28 Aug)" },
+  { id: "a3", role: "Market Research Associate", org: "Posted on an external job board", place: "Pune", band: "₹4–6 LPA", channel: "external",
+    rows: [
+      { requirement: "market_research", must: true, label: "some", coverage: 0.5, bestClass: "work_artifact", recencyMonths: 1 },
+      { requirement: "python", must: true, label: "unknown", coverage: null, bestClass: null },
+    ],
+    note: "Materials are ready. External sites don't allow automated submission, so Aco opens the page with everything copied — you press submit.",
+    resume: "Resume v3 · Growth (12 Sep)" },
+];
+
+function seekerHome() {
+  const left = PREPARED.filter((p) => !S.approved.has(p.id) && !S.skipped.has(p.id));
+  return `<div class="view">
+    <div><div class="eyebrow">Tuesday · 30 Sep</div><h1>Ready for <em class="serif">you</em>, Priya</h1>
+      <p class="lede">Aco looked at 214 new openings against your two intents overnight. ${left.length} are worth your time. Nothing goes out until you say so.</p></div>
+    <div class="grid3">
+      <div class="kv"><div><small>Prepared</small><b>${left.length}</b></div></div>
+      <div class="kv"><div><small>Submitted this week</small><b>${2 + S.approved.size}</b></div></div>
+      <div class="kv"><div><small>Waiting on employers</small><b>4</b></div></div>
+    </div>
+    ${left.length === 0 ? `<div class="card"><h2>You're clear for today</h2><p class="lede">Aco checks again tonight. Anything that needs you will show up here.</p></div>` : ""}
+    ${left.map((p) => `
+      <article class="card agent" aria-labelledby="t-${p.id}">
+        <div class="row between"><span class="drafted">● Prepared by Aco</span>
+          <span class="chip plain">${p.channel === "native" ? "On Aco · undo for 30 min" : "External site · you submit"}</span></div>
+        <div><h2 id="t-${p.id}">${esc(p.role)}</h2><p class="meta">${esc(p.org)} · ${esc(p.place)} · <span class="num">${esc(p.band)}</span></p></div>
+        ${fitRows(p.rows)}
+        <div class="field"><label for="note-${p.id}">What will be sent</label><div class="quote" id="note-${p.id}">${esc(p.note)}</div></div>
+        <div class="row between"><span class="meta">${esc(p.resume)} will go with it</span>
+          <div class="row">
+            <button class="btn ghost" type="button" data-why="${p.id}">Why?</button>
+            <button class="btn ghost" type="button" data-skip="${p.id}">Skip</button>
+            <button class="btn primary" type="button" data-approve="${p.id}">${p.channel === "native" ? "Approve and send" : "Open with materials"}</button>
+          </div></div>
+      </article>`).join("")}
+  </div>`;
+}
+
+const BOARD_COLS = [
+  ["Prepared", ["Data Intern · Zestloop"]],
+  ["Submitted", ["Ops Associate · Brightwell", "BA Trainee · Nirmaan"]],
+  ["Shortlisted", ["Growth Intern · Kesar Foods"]],
+  ["Assessing", ["Analyst · Tarang Logistics"]],
+  ["Offered", []],
+  ["Active", ["Campus project · Demo College incubator"], true],
+  ["Outcome", ["Retailer list clean-up · verified"], true],
+];
+function seekerBoard() {
+  const extra = PREPARED.filter((p) => S.approved.has(p.id) && p.channel === "native").map((p) => `${p.role} · ${p.org}`);
+  return `<div class="view">
+    <div><div class="eyebrow">Engagements</div><h1>One board, <em class="serif">same</em> truth as the employer's</h1>
+      <p class="lede">Each card is an engagement. The employer's pipeline reads the same record, so if they close a role you see it here the same minute, with the reason.</p></div>
+    <div class="board">${BOARD_COLS.map(([name, items, post], i) => {
+      const all = i === 1 ? [...extra, ...items] : items;
+      return `<section class="col"><h3 class="${post ? "post" : ""}"><span>${name}</span><span>${all.length}</span></h3>
+        ${all.map((t) => `<div class="mini"><b>${esc(t.split(" · ")[0])}</b><span class="meta">${esc(t.split(" · ")[1] || "")}</span></div>`).join("") || '<span class="meta">Nothing here</span>'}</section>`; }).join("")}
+    </div>
+    <div class="mini"><b>Closed by employer · Sales Trainee · Arka Retail</b><span class="meta">Role closed on 24 Sep before a decision. It stays on your timeline; nothing was lost.</span></div>
+    <p class="note">Blue columns are new in V2: the engagement keeps going after you join, and the work you do there becomes evidence on your passport.</p>
+  </div>`;
+}
+
+const PASSPORT = [
+  { cap: "market_research", label: "some", cov: 0.5, items: [["work_artifact", "Retailer segmentation for incubator", "probable · mentor attested", "Sep 2026"], ["claim", "Resume v3", "provisional", "Sep 2026"]] },
+  { cap: "data_cleaning", label: "some", cov: 0.44, items: [["assessment", "Structured data assessment", "verified", "Sep 2026"]] },
+  { cap: "excel_modelling", label: "strong", cov: 0.66, items: [["assessment", "Canteen cost model", "verified", "Aug 2026"], ["credential", "Advanced Excel course", "verified", "Jun 2026"]] },
+  { cap: "sql", label: "thin", cov: 0.12, items: [["claim", "Resume v2", "provisional", "Jun 2026"]] },
+  { cap: "crm_admin", label: "unknown", cov: null, items: [] },
+];
+function seekerPassport() {
+  return `<div class="view">
+    <div><div class="eyebrow">Capability passport</div><h1>What you can <em class="serif">show</em>, not just say</h1>
+      <p class="lede">Resume lines count as claims. Assessments, mentor-attested work and measured outcomes count for more. Something you haven't shown yet reads as "no evidence yet", never as a zero.</p></div>
+    <div class="card"><div class="row between"><h2>Who can see this</h2><span class="meta">Change any time; withdrawing takes effect within a minute.</span></div>
+      <div class="auto-row"><div><b>Demo College placement cell</b><p class="meta">Your college and the employers it runs drives with</p></div>
+        <div class="dial" role="group" aria-label="Institution visibility"><button type="button" data-disc="institution" data-v="0" aria-pressed="${!S.disclosure.institution}">Hidden</button><button type="button" data-disc="institution" data-v="1" aria-pressed="${S.disclosure.institution}">Visible</button></div></div>
+      <div class="auto-row"><div><b>All recruiters on Aco</b><p class="meta">Makes you findable for any employer's demand</p></div>
+        <div class="dial" role="group" aria-label="Recruiter visibility"><button type="button" data-disc="all_recruiters" data-v="0" aria-pressed="${!S.disclosure.all_recruiters}">Hidden</button><button type="button" data-disc="all_recruiters" data-v="1" aria-pressed="${S.disclosure.all_recruiters}">Visible</button></div></div>
+    </div>
+    <div class="grid2">${PASSPORT.map((p) => `
+      <div class="card"><div class="row between"><h2>${esc(capName(p.cap))}</h2>${chip(p.label)}</div>
+        <div class="bar" aria-hidden="true" style="margin:0"><i style="width:${p.cov == null ? 0 : p.cov * 100}%;background:${barColor[p.label]}"></i></div>
+        ${p.items.length ? `<ul class="clean">${p.items.map((i) => `<li class="row between"><span><span class="chip plain">${CLASS_TXT[i[0]]}</span> ${esc(i[1])}</span><span class="meta">${esc(i[2])} · ${esc(i[3])}</span></li>`).join("")}</ul>`
+          : `<p class="meta">Came up as a must-have in 4 of your last 20 matches. Next step: <button class="link" type="button" data-gap="crm">Kesar Foods cohort project (produces work evidence)</button></p>`}
+      </div>`).join("")}</div>
+  </div>`;
+}
+
+const TIMELINE = [
+  ["09:12", "agent", "A", "Prepared 3 applications", "Discovery + Application agents · 214 openings checked", "prep"],
+  ["Yesterday", "", "→", "Growth Intern · Kesar Foods moved to shortlisted", "by Meera (Kesar Foods)", null],
+  ["27 Sep", "ev", "✓", "Retailer segmentation attested by your mentor", "evidence now probable · market research", null],
+  ["26 Sep", "agent", "A", "Follow-up sent to Brightwell", "routine reply on an existing thread · your standing permission", "follow"],
+  ["24 Sep", "", "→", "Sales Trainee · Arka Retail closed by employer", "role closed before a decision", null],
+];
+function seekerTimeline() {
+  return `<div class="view">
+    <div><div class="eyebrow">Timeline</div><h1>Everything, in <em class="serif">order</em></h1>
+      <p class="lede">Every change to your applications, evidence and outcomes, including what Aco did for you and why.</p></div>
+    <div class="tl">${TIMELINE.map(([t, k, g, title, sub, why]) => `
+      <div class="item"><time>${t}</time><span class="dot ${k}" aria-hidden="true">${g}</span>
+        <div><b>${esc(title)}</b><p class="meta">${esc(sub)} ${why ? `· <button class="link" type="button" data-why="${why}">Why?</button>` : ""}</p></div></div>`).join("")}</div>
+  </div>`;
+}
+
+const AUTO = [
+  ["apply_native", "Apply to roles posted on Aco", "Checks: matches your intent and band, resume pinned, posting unchanged. Max 5 a day, 30-minute undo.", 4],
+  ["apply_external", "Apply on other job sites", "Other sites don't allow automated submission. Aco prepares; you press submit.", 3],
+  ["followups", "Follow up when there's no reply", "Two polite follow-ups at most, on the same thread.", 4],
+  ["schedule", "Schedule interviews", "Within the time windows you set.", 4],
+  ["reject", "Accept or decline offers", "Always your decision.", 6],
+];
+const LEVELS = ["Off", "Suggest", "Prepare", "Ask me", "Do it"];
+function seekerAuto() {
+  return `<div class="view">
+    <div><div class="eyebrow">Automation</div><h1>How much Aco does <em class="serif">for</em> you</h1>
+      <p class="lede">Each row has a ceiling set by Aco. You can always choose less. Commitments — offers, withdrawals, who sees your passport — stay yours.</p></div>
+    <div class="card">
+      <div class="row between"><h2>${S.paused ? "Automation is paused" : "Automation is on"}</h2>
+        <button class="btn" type="button" id="pauseAll">${S.paused ? "Resume" : "Pause all"}</button></div>
+      ${AUTO.map(([k, t, d, max]) => `<div class="auto-row"><div><b>${esc(t)}</b><p class="meta">${esc(d)}</p></div>
+        ${max === 6 ? '<span class="chip lock">🔒 Always your decision</span>' :
+          `<div class="dial" role="group" aria-label="${esc(t)}">${LEVELS.map((l, i) => `<button type="button" data-dial="${k}" data-v="${i}" aria-pressed="${S.dial[k] === i}" ${i > max || S.paused ? "disabled" : ""}>${l}</button>`).join("")}</div>`}
+      </div>`).join("")}
+    </div>
+    <div class="card"><h2>Standing permissions</h2>
+      <div class="auto-row"><div><b>Application agent · apply to roles on Aco</b><p class="meta">Growth & analyst intents · ₹3–6 LPA · until 30 Oct · <span class="num">2 of 5</span> used today · <span class="num">₹11</span> of ₹200 this month</p></div><button class="btn" type="button" data-revoke>Revoke</button></div>
+      <div class="auto-row"><div><b>Coordination agent · routine replies</b><p class="meta">Existing threads only · until 15 Oct</p></div><button class="btn" type="button" data-revoke>Revoke</button></div>
+    </div>
+  </div>`;
+}
+
+// ---------- recruiter ----------
+function recruiterDemand() {
+  const d = DATA?.demand;
+  return `<div class="view">
+    <div><div class="eyebrow">New demand</div><h1>Describe the <em class="serif">outcome</em>, not the job title</h1>
+      <p class="lede">Aco drafts the rest. Fields it filled are tinted until you touch them. Nothing is published until you press Publish.</p></div>
+    <div class="card"><div class="field"><label for="brief">What do you need done?</label>
+      <textarea id="brief">We've never done outbound sales. Need someone to set up our first outbound motion over the next 90 days — research target retailers, set up a CRM, write the outreach, get us demos. Budget around ₹60k a month. Bengaluru or remote is fine.</textarea></div>
+      <div class="row"><button class="btn primary" type="button" id="draftBtn">${S.demandDrafted ? "Redraft" : "Draft with Aco"}</button><span class="meta">Demand agent · prepare only</span></div></div>
+    ${S.demandDrafted ? `<div class="card agent"><span class="drafted">● Drafted by Aco — review before publishing</span>
+      <div class="grid2">
+        <div class="field ai"><label>Intent</label><div class="val">${esc(d.title)}</div></div>
+        <div class="field ai"><label>Success looks like</label><div class="val">Outbound motion live · ≥ 300 qualified leads · first demos booked</div></div>
+        <div class="field ai"><label>Hours and window</label><div class="val num">${d.hoursPerWeek} h/week · 1 Nov – 31 Jan</div></div>
+        <div class="field"><label>Budget (you said)</label><div class="val num">up to ${inr(d.budgetMonthlyInr)}/month</div></div>
+      </div>
+      <div class="field ai"><label>Work, in pieces that can be checked</label><div class="val"><ul class="clean">
+        <li>1 · Target list of 400 retailers with fit notes → <span class="meta">evidence: the list</span></li>
+        <li>2 · CRM set up, pipeline stages, import → <span class="meta">evidence: CRM export</span></li>
+        <li>3 · Three outreach sequences → <span class="meta">evidence: sequences + reply rates</span></li>
+        <li>4 · Weekly demo report → <span class="meta">evidence: report</span></li></ul></div></div>
+      <div class="field ai"><label>Capabilities</label><div class="val row">${d.requirements.map((r) => `<span class="chip plain">${r.must ? "must · " : "nice · "}${esc(capName(r.capability))}</span>`).join("")}</div></div>
+      <div class="field ai"><label>Ways to staff it</label><div class="val">Single hire · Hire + mentor · Two-person split · Contractor · Campus intern cohort</div></div>
+      <div class="row"><button class="btn primary" type="button" data-go="configs">Publish and see options</button><button class="btn ghost" type="button" data-why="demand">Why these fields?</button></div>
+    </div>` : ""}
+  </div>`;
+}
+
+const TYPE_TXT = { single: "Single hire", with_mentor: "Intern + mentor", split: "Two-person split", contractor: "Contractor", intern_cohort: "Campus intern cohort" };
+function recruiterConfigs() {
+  const run = DATA.run;
+  return `<div class="view">
+    <div><div class="eyebrow">Kesar Foods · ${esc(DATA.demand.title)}</div><h1>${run.configurations.length} ways to <em class="serif">staff</em> this</h1>
+      <p class="lede">Built from people who agreed to be shown to you, filtered by your hard limits first. No single score: each option shows its evidence, cost, start date, risks and what's still unknown.</p></div>
+    <div class="row">${run.excludedSupply.map((x) => `<span class="chip plain wrap">${esc(DATA.names[x.actorId] || x.actorId)} not shown · ${x.reasons.map((r) => r.replaceAll("_", " ")).join(", ")}</span>`).join("")}</div>
+    <div class="grid2">${run.configurations.map((c) => `
+      <article class="card" aria-labelledby="c-${esc(c.id)}">
+        <div class="row between"><h2 id="c-${esc(c.id)}">${TYPE_TXT[c.type]}</h2><span class="num"><b>${inr(c.monthlyCostInr)}</b><span class="meta">/month</span></span></div>
+        <p class="meta">${c.members.map((m) => `${esc(DATA.names[m.actorId] || m.actorId)} (${m.role}${m.share < 1 ? `, ${Math.round(m.share * 100)}%` : ""})`).join(" · ")}</p>
+        ${fitRows(c.fit.rows)}
+        <div class="kv"><div><small>Starts</small><b>${esc(c.startDate)}</b></div><div><small>Unknown must-haves</small><b>${c.fit.mustUnknown}</b></div></div>
+        ${c.risks.length ? `<ul class="clean">${c.risks.map((r) => `<li class="risk">${esc(r.replace(/[a-z0-9]+(?:_[a-z0-9]+)+/g, (m) => capName(m).toLowerCase()))}</li>`).join("")}</ul>` : '<p class="meta">No risks flagged.</p>'}
+        <div class="row"><button class="btn ${S.chosen === c.id ? "primary" : ""}" type="button" data-choose="${esc(c.id)}">${S.chosen === c.id ? "Chosen" : "Choose this"}</button>
+          <button class="btn ghost" type="button" data-why="compiler">Why?</button></div>
+      </article>`).join("")}</div>
+    <p class="note">Computed just now by the live reference compiler (<span class="mono">${esc(run.compilerVersion)}</span>, inputs <span class="mono">${esc(run.inputsHash.slice(0, 12))}</span>). ${run.infeasible.length} options were infeasible (${[...new Set(run.infeasible.flatMap((i) => i.reasons.map((r) => (r === "over_budget" ? "over budget" : "not enough free hours"))))].join("; ")}); ${run.moreOptions.length} more are available under "more options".</p>
+  </div>`;
+}
+
+const PIPE = [["Submitted", 6], ["Screening", 3], ["Shortlisted", 2], ["Assessing", 1], ["Decision", 1], ["Offered", 0], ["Active", 1, true], ["Outcome", 0, true]];
+function recruiterPipeline() {
+  const chosen = DATA.run.configurations.find((c) => c.id === S.chosen) || DATA.run.configurations.find((c) => c.type === "with_mentor");
+  return `<div class="view">
+    <div><div class="eyebrow">Pipeline</div><h1>From applied to <em class="serif">delivered</em></h1>
+      <p class="lede">The same engagements the candidates see on their boards. The blue columns are where V1 used to stop.</p></div>
+    <div class="board">${PIPE.map(([n, c, post]) => `<section class="col"><h3 class="${post ? "post" : ""}"><span>${n}</span><span>${c}</span></h3>
+      ${n === "Decision" ? `<div class="mini"><b>${esc(TYPE_TXT[chosen.type])}</b><span class="meta">${chosen.members.map((m) => esc((DATA.names[m.actorId] || "").split(" (")[0])).join(" + ")}</span><button class="link" type="button" data-go="decision">Open decision card</button></div>` : ""}
+      ${n === "Active" ? `<div class="mini"><b>Campus cohort · Q3 pilot</b><span class="meta">3 of 4 deliverables in</span></div>` : ""}
+      ${c === 0 && n !== "Decision" ? '<span class="meta">Nothing here</span>' : ""}</section>`).join("")}</div>
+  </div>`;
+}
+
+function recruiterDecision() {
+  const c = DATA.run.configurations.find((x) => x.id === S.chosen) || DATA.run.configurations.find((x) => x.type === "with_mentor");
+  return `<div class="view">
+    <div><div class="eyebrow">Decision card</div><h1>${esc(TYPE_TXT[c.type])}: <em class="serif">decide</em> in one screen</h1></div>
+    <div class="card">
+      <p class="meta">${c.members.map((m) => esc(DATA.names[m.actorId] || m.actorId)).join(" · ")}</p>
+      ${fitRows(c.fit.rows)}
+      <div class="kv"><div><small>Cost</small><b>${inr(c.monthlyCostInr)}/mo</b></div><div><small>Starts</small><b>${esc(c.startDate)}</b></div><div><small>Unknowns</small><b>${c.unknowns.length ? esc(c.unknowns.map(capName).join(", ")) : "None"}</b></div></div>
+      <div class="field"><label>Interview kit focuses on</label><div class="val">${c.fit.rows.filter((r) => r.label !== "strong").map((r) => esc(capName(r.requirement))).join(" · ")} — the rows with the least evidence</div></div>
+      <div class="row">
+        <button class="btn primary" type="button" id="sendOffer">Send offer</button>
+        <button class="btn" type="button">Move to assessing</button>
+        <button class="btn ghost" type="button" id="draftReject">Draft a decline…</button>
+        <span class="chip lock">🔒 Offers and declines are always sent by a person</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function recruiterOutcome() {
+  return `<div class="view">
+    <div><div class="eyebrow">Outcome</div><h1>Did it <em class="serif">work</em>?</h1>
+      <p class="lede">Drafted from your success criteria and the evidence the team submitted. You confirm; it feeds the next match.</p></div>
+    <div class="card agent"><span class="drafted">● Drafted by Aco — confirm or edit</span>
+      <div class="kv"><div><small>Target</small><b>≥ 300 leads</b></div><div><small>Actual</small><b class="num">412 leads · 9 demos</b></div><div><small>Result</small><b>Met</b></div><div><small>Attribution</small><b>Medium</b></div></div>
+      <div class="field"><label>Confounders</label><div class="val">Founder also ran outreach in weeks 6–8</div></div>
+      <div class="field"><label>Evidence</label><div class="val row"><span class="chip strong">CRM export · verified</span><span class="chip some">Sequences · mentor attested</span></div></div>
+      <div class="row"><button class="btn primary" type="button" id="confirmOutcome">Confirm outcome</button><button class="btn ghost" type="button" data-why="outcome">Why?</button></div>
+    </div>
+  </div>`;
+}
+
+// ---------- institution ----------
+const COHORT = [["Market research", 9, 14, 15, 23], ["CRM setup & admin", 3, 6, 29, 17], ["B2B outreach writing", 5, 12, 21, 12], ["Data cleaning", 12, 15, 11, 19], ["SQL", 7, 10, 21, 31], ["Excel modelling", 15, 13, 10, 14]];
+function instCohort() {
+  return `<div class="view">
+    <div><div class="eyebrow">Demo College · CSE & IT · batch of 2027</div><h1>Where your cohort meets <em class="serif">live</em> demand</h1>
+      <p class="lede">Only students who agreed to be shown are counted by name anywhere. Everyone else is a number here and nowhere else.</p></div>
+    <div class="grid3">
+      <div class="kv"><div><small>On roster</small><b>142</b></div></div>
+      <div class="kv"><div><small>Agreed to be shown</small><b>38</b></div></div>
+      <div class="kv"><div><small>Linked, not yet agreed</small><b>61</b></div></div>
+    </div>
+    <div class="card"><div class="row between"><div><h2>61 students haven't answered</h2><p class="meta">They're linked to your college but haven't chosen whether employers can see them. Nobody is shown until they say yes.</p></div>
+      <button class="btn primary" type="button" id="consentDrive">Send consent request</button></div></div>
+    <div class="tablewrap"><table><thead><tr><th>Capability</th><th class="r">Strong</th><th class="r">Some</th><th class="r">No evidence yet</th><th class="r">Live demand (openings)</th></tr></thead>
+      <tbody>${COHORT.map(([n, s, m, u, d]) => `<tr><td>${n}</td><td class="r">${s}</td><td class="r">${m}</td><td class="r">${u}</td><td class="r"><b>${d}</b>${d > s + m ? ' <span class="chip thin">under-supplied</span>' : ""}</td></tr>`).join("")}</tbody></table></div>
+    <p class="note">Live demand counts published openings across Aco, shown only when at least 20 exist (k-anonymity). Counts are illustrative for the preview.</p>
+  </div>`;
+}
+
+function instReport() {
+  const bands = [["Under ₹3 LPA", 9], ["₹3–6 LPA", 31], ["₹6–10 LPA", 14], ["₹10–15 LPA", 4], ["₹15–25 LPA", 1], ["₹25 LPA+", 0]];
+  const max = Math.max(...bands.map((b) => b[1]));
+  const placed = 59, notPlaced = 58, opted = 25;
+  return `<div class="view">
+    <div><div class="eyebrow">Placement report · 2026–27 season to date</div><h1>The number you're <em class="serif">judged</em> on</h1>
+      <p class="lede">Students who opted out (higher studies, family business, not participating) stay out of the denominator, the same way V1 already counts them.</p></div>
+    <div class="grid3">
+      <div class="kv"><div><small>Placement rate</small><b class="num">${Math.round((placed / (placed + notPlaced)) * 100)}%</b></div></div>
+      <div class="kv"><div><small>Placed / seeking</small><b class="num">${placed} / ${placed + notPlaced}</b></div></div>
+      <div class="kv"><div><small>Opted out</small><b class="num">${opted}</b></div></div>
+    </div>
+    <div class="card"><h2>Offers by CTC band</h2><div class="bands">${bands.map(([l, n]) => `<div class="band"><span>${l}</span><span class="track"><i style="width:${max ? (n / max) * 100 : 0}%"></i></span><span class="num">${n}</span></div>`).join("")}</div></div>
+    <div class="card"><h2>New in V2: project outcomes</h2><p class="meta">14 students finished supervised projects with partner SMEs this term. 11 have verified outcomes on their passports — evidence the next employer can check.</p></div>
+  </div>`;
+}
+
+// ---------- traces ----------
+const TRACES = {
+  a1: { title: "Why Aco prepared this", agent: "Discovery → Application", policy: "Prepare (L2) · send needs you", cost: "₹3.40", model: "small + mid",
+    steps: [["Matched your intent", "Growth / analyst · internship or full-time · ₹3–6 LPA · Bengaluru or remote"], ["Compared requirements with your passport", "2 must-haves with some evidence, 1 nice-to-have unknown"], ["Picked Resume v3", "Highest overlap with this posting; nothing added that isn't already in your resume"], ["Drafted the note", "Cites one attested artifact; no claims beyond your passport (checked)"]] },
+  a2: { title: "Why Aco prepared this", agent: "Discovery → Application", policy: "Prepare (L2)", cost: "₹3.10", model: "small + mid", steps: [["Matched your analyst intent", "Remote, ₹4.5–5.5 LPA"], ["SQL is thin", "Flagged as a gap, not hidden"]] },
+  a3: { title: "Why this is a handoff", agent: "Application", policy: "Capped at Ask me (L3) for external sites", cost: "₹2.20", model: "small", steps: [["External site", "Automated submission breaks most job sites' terms"], ["Materials copied", "You submit on their site, then tap 'I submitted'"]] },
+  prep: { title: "Overnight run", agent: "Discovery + Application", policy: "Prepare only", cost: "₹9.80", model: "small", steps: [["Checked 214 new openings", "Normalised once per posting and cached"], ["Filtered by your hard limits", "Location, band, mode, already applied"], ["Prepared the top 3", "Waiting in Ready for you"]] },
+  follow: { title: "Follow-up to Brightwell", agent: "Coordination", policy: "Do it (L4) · your standing permission", cost: "₹0.40", model: "small", steps: [["5 business days, no reply", "Rule: at most two follow-ups"], ["Template-bound, existing thread", "Both checks passed, so it went without asking"]] },
+  demand: { title: "Why these fields", agent: "Demand", policy: "Prepare (L2) · publishing is yours", cost: "₹2.70", model: "mid", steps: [["Read your paragraph", "Nothing else from outside your account was used"], ["Split the work", "Four pieces, each with something that proves it's done"], ["Left budget as you said it", "Aco never invents budget or location"]] },
+  compiler: { title: "How these options were built", agent: "Allocation (compiler)", policy: "Recommend (L1)", cost: "₹0 — no model", model: "deterministic", steps: [["Started from consented supply", "People who agreed to be shown to you or your partner college"], ["Applied hard limits first", "Availability window, location, free hours, budget"], ["Built five kinds of configuration", "Kept only options not beaten on every axis"], ["Stored the run", "So the prediction can be compared with the outcome later"]] },
+  outcome: { title: "How the outcome was drafted", agent: "Outcome", policy: "Draft (L2) · confirm is yours", cost: "₹1.60", model: "mid", steps: [["Read success criteria", "≥ 300 qualified leads"], ["Read linked evidence", "CRM export (verified), sequences (attested)"], ["Named a confounder", "Founder outreach in weeks 6–8 → medium attribution"]] },
+};
+
+// ---------- nav + render ----------
+const NAV = {
+  seeker: { who: ["Priya Nair", "B.Tech CSE · final year"], items: [["home", "Ready for you", () => PREPARED.filter((p) => !S.approved.has(p.id) && !S.skipped.has(p.id)).length], ["board", "Engagements"], ["passport", "Passport"], ["timeline", "Timeline"], ["auto", "Automation"]] },
+  recruiter: { who: ["Meera Iyer", "Founder · Kesar Foods"], items: [["demand", "New demand"], ["configs", "Configurations"], ["pipeline", "Pipeline"], ["decision", "Decision card"], ["outcome", "Outcome"]] },
+  institution: { who: ["Dr. Kavita Rao", "Placement officer · Demo College"], items: [["cohort", "Cohort map"], ["report", "Placement report"]] },
+};
+const VIEWS = { home: seekerHome, board: seekerBoard, passport: seekerPassport, timeline: seekerTimeline, auto: seekerAuto,
+  demand: recruiterDemand, configs: recruiterConfigs, pipeline: recruiterPipeline, decision: recruiterDecision, outcome: recruiterOutcome,
+  cohort: instCohort, report: instReport };
+
+function render() {
+  const nav = NAV[S.role];
+  const cur = S.view[S.role];
+  $("#rail").innerHTML = `<div class="who"><b>${esc(nav.who[0])}</b><span>${esc(nav.who[1])}</span></div>` +
+    nav.items.map(([id, label, count]) => `<button type="button" data-nav="${id}" ${cur === id ? 'aria-current="page"' : ""}><span>${label}</span>${count ? `<span class="count">${count()}</span>` : ""}</button>`).join("");
+  $("#main").innerHTML = VIEWS[cur]();
+  document.querySelectorAll(".roles button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.role === S.role)));
+  const pending = PREPARED.filter((p) => !S.approved.has(p.id) && !S.skipped.has(p.id)).length;
+  $("#bellCount").textContent = String(pending);
+  $("#bellCount").hidden = pending === 0;
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  const d = t.dataset;
+  if (d.role) { S.role = d.role; render(); return; }
+  if (d.nav) { S.view[S.role] = d.nav; render(); window.scrollTo(0, 0); return; }
+  if (d.go) { S.view[S.role] = d.go; render(); window.scrollTo(0, 0); return; }
+  if (d.why) { openTrace(TRACES[d.why] || TRACES.prep); return; }
+  if (d.approve) {
+    const p = PREPARED.find((x) => x.id === d.approve);
+    S.approved.add(p.id); render();
+    if (p.channel === "native") toast(`Sent to ${p.org}`, { undoSeconds: 30 * 60, onUndo: () => { S.approved.delete(p.id); render(); toast("Withdrawn before the employer saw it"); } });
+    else toast("Opened with your materials. Tap “I submitted” on the page when done.");
+    return;
+  }
+  if (d.skip) { S.skipped.add(d.skip); render(); toast("Skipped. Aco won't suggest this one again."); return; }
+  if (d.dial) { S.dial[d.dial] = Number(d.v); render(); toast(`Set to “${LEVELS[Number(d.v)]}”`); return; }
+  if (d.disc) { S.disclosure[d.disc] = d.v === "1"; render(); toast(d.v === "1" ? "Visible. You can hide it again any time." : "Hidden. Removed from search within a minute."); return; }
+  if (d.revoke !== undefined) { t.closest(".auto-row").remove(); toast("Permission revoked. Runs in progress stop at their next step."); return; }
+  if (d.choose) { S.chosen = d.choose; render(); toast("Chosen. Soft holds placed on everyone's time for 72 hours."); return; }
+  if (d.gap) { toast("Opened the cohort project brief"); return; }
+  if (t.id === "pauseAll") { S.paused = !S.paused; render(); toast(S.paused ? "All automation paused" : "Automation resumed"); return; }
+  if (t.id === "draftBtn") { S.demandDrafted = true; render(); return; }
+  if (t.id === "sendOffer") { toast("Offer sent by you. Both people need to accept before work starts."); return; }
+  if (t.id === "draftReject") { toast("Decline drafted with reasons. Review and send it yourself."); return; }
+  if (t.id === "confirmOutcome") { toast("Outcome recorded. Passports updated; the compiler's prediction is logged against it."); return; }
+  if (t.id === "consentDrive") { toast("Consent request sent to 61 students in English and Hindi"); return; }
+  if (t.id === "bell") { S.role = "seeker"; S.view.seeker = "home"; render(); return; }
+  if (t.id === "theme") {
+    const r = document.documentElement;
+    const now = r.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    r.dataset.theme = now === "dark" ? "light" : "dark";
+    try { localStorage.setItem("aco-v2-theme", r.dataset.theme); } catch (_) {}
+  }
+});
+
+try { const th = localStorage.getItem("aco-v2-theme"); if (th) document.documentElement.dataset.theme = th; } catch (_) {}
+async function boot() {
+  const main = document.getElementById("main");
+  main.innerHTML = '<div class="view"><div class="eyebrow">Aco\'s Employment</div><h1>Loading the <em class="serif">live</em> compiler</h1><p class="lede">Staffing options are computed on the server from the reference kernel, not from a baked screenshot.</p></div>';
+  try {
+    const res = await fetch("/api/compile", { headers: { "accept": "application/json" } });
+    if (!res.ok) throw new Error("compile " + res.status);
+    DATA = await res.json();
+    render();
+  } catch (err) {
+    main.innerHTML = '<div class="view"><h1>Compiler unavailable</h1><p class="lede">' + esc(err.message) + '</p></div>';
+  }
+}
+boot();
+</script>
+
+</body></html>

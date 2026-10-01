@@ -1,0 +1,19 @@
+{
+  "name": "acos-employment-v2",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Aco's Employment — demand to verified outcome. Live console on the V2 reference kernel.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test kernel/tests/*.test.js"
+  },
+  "dependencies": {
+    "next": "^15.5.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}
